@@ -1,0 +1,603 @@
+diff -ruN pa8-orig/clean.sh pa8/clean.sh
+--- pa8-orig/clean.sh	1970-01-01 03:00:00.000000000 +0300
++++ pa8/clean.sh	2012-03-25 14:50:16.000000000 +0400
+@@ -0,0 +1,4 @@
++#!/bin/sh
++find . \( -name '*.a' -o -name '*.o' -o -name '*~' -o -name pa8v -o -name pa8c -o -name pa8lnker \) | xargs -t -L1 rm
++find test \( -name 'pa8' -o -name 'pa8.cnf' -o -name 'pa8lnker' \) | xargs -t -L1 rm
++find sys -name pa8wrk.h | xargs -t -L1 rm
+diff -ruN pa8-orig/src/comp/an0000.c pa8/src/comp/an0000.c
+--- pa8-orig/src/comp/an0000.c	2000-10-23 19:05:32.000000000 +0400
++++ pa8/src/comp/an0000.c	2012-03-25 14:51:57.000000000 +0400
+@@ -278,7 +278,7 @@
+ 		     char *p_name, **pp_name;
+ 		      int  len;
+ 
+-  while ( (int) fgets(com_buff, 128, p_conf) != NULL)
++  while ( (void*) fgets(com_buff, 128, p_conf) != NULL)
+     {
+     if ((com_buff[0] != ' ')&&(com_buff[0] != '$')&&(com_buff[0] != '\n'))
+       {
+@@ -1403,7 +1403,7 @@
+ 
+   /* Now p_buff[0] is a 1st character after object/model name	*/
+ 
+-  if ( (int) (p_mo_desc = an8100(mod_name)) == NULL )
++  if ( (void*) (p_mo_desc = an8100(mod_name)) == NULL )
+     { msglog_0(2,14,1); goto Error; };
+ 
+   p_el = (struct el_desc *) calloc(1, sizeof(struct el_desc));
+@@ -2415,7 +2415,7 @@
+   struct  pr_desc  *p_pr;
+   struct  el_desc  *p_el;
+           node_nmb *c_top, *c_mod, *p_nodes;
+-          index    i, ncx2, indx;
++          index_type   i, ncx2, indx;
+ 
+   p_obj->p_c_top = c_top = 
+ 	(node_nmb *) calloc (((p_obj->n_c) * 2), sizeof(node_nmb));
+diff -ruN pa8-orig/src/comp/an8000.c pa8/src/comp/an8000.c
+--- pa8-orig/src/comp/an8000.c	2000-10-23 19:05:32.000000000 +0400
++++ pa8/src/comp/an8000.c	2012-03-25 14:49:05.000000000 +0400
+@@ -77,9 +77,9 @@
+     strncpy(name_f+l, str, i);
+     strcpy(name_f+l+i, ".des");
+     str += i;
+-    if ( (int) (p_file = fopen(name_f, "r")) == NULL)
++    if ( (void*) (p_file = fopen(name_f, "r")) == NULL)
+        { msglog_0(3,1,3); free(name_f); return(-1); };
+-    while ( (int) fgets(long_str, 80, p_file) != NULL )
++    while ( (void*) fgets(long_str, 80, p_file) != NULL )
+       {
+       if (long_str[0] == '#')
+ 	{
+@@ -135,7 +135,7 @@
+     p_str++;
+     if ( !strncmp(p_str, "=>", 2) )
+       {
+-      if( (int) (fgets(str,80,p_file)) == NULL ) return (-1);
++      if( (void*) (fgets(str,80,p_file)) == NULL ) return (-1);
+       p_str = str;
+       };
+ 
+@@ -439,7 +439,7 @@
+       msglog_0(3,3,3);
+       return(-1);
+       };
+-    if ( (int) fgets(p_str, 80, p_file) == NULL) return(-1);
++    if ( (void*) fgets(p_str, 80, p_file) == NULL) return(-1);
+     };
+   return(0);
+   }
+diff -ruN pa8-orig/src/comp/common.c pa8/src/comp/common.c
+--- pa8-orig/src/comp/common.c	2000-10-23 19:05:34.000000000 +0400
++++ pa8/src/comp/common.c	2012-03-25 14:49:05.000000000 +0400
+@@ -190,12 +190,12 @@
+     {
+     if (p_inclf == NULL)
+       {
+-      if ( (int) fgets(p_buff, LEN_ILINE, files.p_in_f) == NULL )
++      if ( (void*) fgets(p_buff, LEN_ILINE, files.p_in_f) == NULL )
+         { msglog_0(3,2,0); return(-1); };
+       }
+      else
+       {
+-      if ( (int) fgets(p_buff, LEN_ILINE, p_inclf) == NULL )
++      if ( (void*) fgets(p_buff, LEN_ILINE, p_inclf) == NULL )
+ 	{
+ 	fclose (p_inclf);
+ 	p_inclf = NULL;
+@@ -269,7 +269,7 @@
+     l = 0;
+     if (p_inclf == NULL)
+       {
+-      if ( (int) fgets(p_buff, LEN_ILINE, files.p_in_f) == NULL )
++      if ( (void*) fgets(p_buff, LEN_ILINE, files.p_in_f) == NULL )
+ 	{ msglog_0(3,2,0); return(-1); };
+       if (!strncmp(com_buff, "%include ", 9))
+ 	{
+@@ -283,7 +283,7 @@
+       }
+      else
+       {
+-      if ( (int) fgets(p_buff, LEN_ILINE, p_inclf) == NULL )
++      if ( (void*) fgets(p_buff, LEN_ILINE, p_inclf) == NULL )
+ 	{
+ 	fclose (p_inclf);
+ 	p_inclf = NULL;
+diff -ruN pa8-orig/src/comp/common.h pa8/src/comp/common.h
+--- pa8-orig/src/comp/common.h	2000-10-23 19:05:34.000000000 +0400
++++ pa8/src/comp/common.h	2012-03-25 14:52:02.000000000 +0400
+@@ -17,6 +17,7 @@
+ #ifdef UNIX
+ #include <stdlib.h>
+ #include <stdio.h>
++#include <string.h>
+ #include <ctype.h>
+ #include <math.h>
+ #define abs(X) ((X<0) ? -X : X)
+@@ -27,7 +28,7 @@
+ /*----------------- Types definition - -----------------*/
+ 
+ typedef int node_nmb;
+-typedef int index;
++typedef int index_type;
+ 
+ /*--------------- Constant declarations ----------------*/
+ 
+@@ -173,7 +174,7 @@
+     {
+     short	      type;      /* type of column		*/
+     node_nmb          number;    /* column number		*/
+-    index	      offset;    /* index in linear array	*/
++    index_type	      offset;    /* index in linear array	*/
+     struct col_desc   *p_next_d; /* pointer on next descriptor  */
+     };
+ 
+@@ -184,12 +185,12 @@
+     char *p_auxstr;             /* pointer on auxiliary string  */
+     char *p_pars;		/* pointer on parameters string	*/
+     struct mme_desc *p_mmedes;  /* poiter on mme description    */
+-    index    n_par_act;		/* actual number of parameters  */
+-    index    n_1st_c;		/* nom of 1st element's C in object */
+-    index    n_1st_l;		/* nom of 1st element's L in object */
+-    index    n_1st_e;		/* nom of 1st element's E in object */
+-    index    n_1st_x;		/* nom of 1st element's X in object */
+-    index    n_1st_y;		/* nom of 1st element's Y in object */
++    index_type    n_par_act;		/* actual number of parameters  */
++    index_type    n_1st_c;		/* nom of 1st element's C in object */
++    index_type    n_1st_l;		/* nom of 1st element's L in object */
++    index_type    n_1st_e;		/* nom of 1st element's E in object */
++    index_type    n_1st_x;		/* nom of 1st element's X in object */
++    index_type    n_1st_y;		/* nom of 1st element's Y in object */
+     node_nmb *p_nodes;		/* pointer on array of physical */
+ 				/* nodes' numbers of element	*/
+ 				/* (external + internal)	*/
+diff -ruN pa8-orig/src/comp/ge0000.c pa8/src/comp/ge0000.c
+--- pa8-orig/src/comp/ge0000.c	2000-10-23 19:05:32.000000000 +0400
++++ pa8/src/comp/ge0000.c	2012-03-25 14:49:05.000000000 +0400
+@@ -396,7 +396,7 @@
+   struct el_desc *p_el;
+ 	     int  n_el, l_d, np_t, nn_t, nw_t, nli, nlj;
+ 
+-  if ( (n_el = p_obj->n_obj_nested) != NULL )
++  if ( (n_el = p_obj->n_obj_nested) != 0 )
+     {
+     fprintf(p_file, "\n/* Nested objects control blocks array */\n\n");
+     nn_t = np_t = 0;
+diff -ruN pa8-orig/src/comp/pa8lnker.c pa8/src/comp/pa8lnker.c
+--- pa8-orig/src/comp/pa8lnker.c	2000-10-23 19:05:34.000000000 +0400
++++ pa8/src/comp/pa8lnker.c	2012-03-25 14:49:05.000000000 +0400
+@@ -22,6 +22,8 @@
+ 
+ #ifdef UNIX
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #define EXIT_OK  0
+ #define EXIT_ERR 1
+ #define LINKER linkunix
+diff -ruN pa8-orig/src/libs/gen/libpa8.h pa8/src/libs/gen/libpa8.h
+--- pa8-orig/src/libs/gen/libpa8.h	2000-10-23 19:05:36.000000000 +0400
++++ pa8/src/libs/gen/libpa8.h	2012-03-25 14:49:05.000000000 +0400
+@@ -14,7 +14,7 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <math.h>
+-#include <varargs.h>
++#include <stdarg.h>
+ #endif
+ 
+ #include <pa8wrk.h>
+diff -ruN pa8-orig/src/libs/gen/linepice.c pa8/src/libs/gen/linepice.c
+--- pa8-orig/src/libs/gen/linepice.c	2011-03-03 12:59:16.000000000 +0300
++++ pa8/src/libs/gen/linepice.c	2012-03-25 14:49:05.000000000 +0400
+@@ -1,5 +1,4 @@
+ #include "libpa8.h"
+-#include <sys/varargs.h>
+ 
+ double linepice (double t_arg, int n_arg, ...)
+ //  double t_arg;
+diff -ruN pa8-orig/src/libs/gen/spline.c pa8/src/libs/gen/spline.c
+--- pa8-orig/src/libs/gen/spline.c	2011-03-03 13:41:50.000000000 +0300
++++ pa8/src/libs/gen/spline.c	2012-03-25 14:49:05.000000000 +0400
+@@ -1,5 +1,4 @@
+ #include "libpa8.h"
+-#include <sys/varargs.h>
+ 
+ double spline (double t_arg, int n_arg, ...)
+   {
+diff -ruN pa8-orig/src/view/Picture.c pa8/src/view/Picture.c
+--- pa8-orig/src/view/Picture.c	2000-10-23 19:05:36.000000000 +0400
++++ pa8/src/view/Picture.c	2012-03-25 14:49:05.000000000 +0400
+@@ -205,7 +205,7 @@
+ 
+   if (region != NULL) XSetRegion(XtDisplay(w), gc, region);
+ 
+-  XtCallCallbacks(pw, XtNexposeCallback, (XtPointer)region);
++  XtCallCallbacks(w, XtNexposeCallback, (XtPointer)region);
+ 
+   if (region != NULL) XSetClipMask(XtDisplay(w), gc, (Pixmap)None);
+ 
+diff -ruN pa8-orig/src/view/pa8v.c pa8/src/view/pa8v.c
+--- pa8-orig/src/view/pa8v.c	2000-10-23 19:05:36.000000000 +0400
++++ pa8/src/view/pa8v.c	2012-03-25 14:49:05.000000000 +0400
+@@ -22,24 +22,28 @@
+ static char   EhLim[25], ElLim[25];
+ static int    graph_type;
+ 
+-int new_file();
+-int   can_file();
+-int   get_file();
+-int graphics();
+-int   define_argument();
+-int   define_function();
++void new_file();
++void   can_file();
++void   get_file();
++void graphics();
++void   define_argument();
++void   define_function();
+ void	limits();
+-int	lim_proc();
+-int   define_type();
+-int   exit_graphics();
+-int build();
+-int   greed();
+-int   add();
+-int   show_lim();
+-int   exit_build();
+-int postproc();
+-int plot();
+-int end_of_work();
++void	lim_proc();
++void   define_type();
++void   exit_graphics();
++void build();
++void   greed();
++void   add();
++void   show_lim();
++void   exit_build();
++void postproc();
++void plot();
++void end_of_work();
++
++
++void read_file (int *flg, FILE *filer, char *file_name);
++void file_information();
+ 
+   Display *	EpDisplay;
+   Window	Ewindow;
+@@ -265,7 +269,7 @@
+ 	    args[1].value = (XtArgVal) ElimMin;
+ 	    ElimApply = XtCreateManagedWidget("limApply", commandWidgetClass,
+ 			ElimFrame, args, 2);
+-	    XtAddCallback(ElimApply, XtNcallback, lim_proc, 1);
++	    XtAddCallback(ElimApply, XtNcallback, lim_proc, (void*)1);
+ 
+ 	    args[0].name  = XtNlabel;
+ 	    args[0].value = (XtArgVal) "Cancel";
+@@ -275,7 +279,7 @@
+ 	    args[2].value = (XtArgVal) ElimMin;
+ 	    ElimCancel = XtCreateManagedWidget("limCancel", commandWidgetClass,
+ 			ElimFrame, args, 3);
+-	    XtAddCallback(ElimCancel, XtNcallback, lim_proc, 0);
++	    XtAddCallback(ElimCancel, XtNcallback, lim_proc, (void*)0);
+ 
+ /*------------------------------------------------------*/
+ 
+@@ -286,19 +290,19 @@
+ 	  args[0].value = (XtArgVal) "Normal";
+ 	  EgrTypeNorm = XtCreateManagedWidget("grTypeNorm", smeBSBObjectClass,
+ 		EgrType, args, 1);
+-	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, 1);
++	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, (void*)1);
+ 
+ 	  args[0].name  = XtNlabel;
+ 	  args[0].value = (XtArgVal) "Log2";
+ 	  EgrTypeNorm = XtCreateManagedWidget("grTypeNorm", smeBSBObjectClass,
+ 		EgrType, args, 1);
+-	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, 2);
++	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, (void*)2);
+ 
+ 	  args[0].name  = XtNlabel;
+ 	  args[0].value = (XtArgVal) "Log10";
+ 	  EgrTypeNorm = XtCreateManagedWidget("grTypeNorm", smeBSBObjectClass,
+ 		EgrType, args, 1);
+-	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, 3);
++	  XtAddCallback(EgrTypeNorm, XtNcallback, define_type, (void*)3);
+ 
+ /*---------------------------------------*/
+ 
+@@ -338,7 +342,7 @@
+   XtAppMainLoop(app_context);
+   }
+ 
+-int new_file(w, pEfileShell, call_data)
++void new_file(w, pEfileShell, call_data)
+   Widget        w;
+   Widget	*pEfileShell;
+   String        call_data;
+@@ -363,20 +367,20 @@
+   XtSetValues(*pEfileShell, args, 2);
+ 
+   XtPopup(*pEfileShell, XtGrabExclusive);
+-  return (0);
++  return;
+   }
+ 
+-int  can_file(w, client_data, call_data)
++void  can_file(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+   XBell(EpDisplay, 10);
+   XFlush(EpDisplay); 
+   XtPopdown(EfileShell);
+-  return (0);
++  return;
+   }
+ 
+-int  get_file(w, client_data, call_data)
++void  get_file(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+@@ -392,7 +396,7 @@
+     flg = 0;
+     XBell(EpDisplay, 10);
+     XFlush(EpDisplay); 
+-    return (0);
++    return;
+     }
+    else
+     {
+@@ -411,17 +415,17 @@
+     args[0].value = (XtArgVal) "Enter file name:";
+     XtSetValues(EfileDialog, args, 1);
+ 
+-    return (0);
++    return;
+     };
+   if (flg == 2)
+     file_information ();
+ 
+   p_argument = NULL;
+   XtPopdown(EfileShell);
+-  return (0);
++  return;
+   }
+ 
+-int read_file (flg, filer, file_name)
++void read_file (flg, filer, file_name)
+   int	*flg;
+   FILE	*filer;
+   char	*file_name;
+@@ -527,10 +531,10 @@
+     p_start = p_tek->p_next;
+     free(p_tek);
+     };
+-  return (0);
++  return;
+   }
+ 
+-int file_information()
++void file_information()
+   {
+   struct VER *p1;
+   for (p1=p_tek->adr_ver; p1!=NULL; p1=p1->p_next)
+@@ -542,11 +546,11 @@
+    printf("name=%s type=%c lim_l=%e lim_h=%e min=%e max=%e\n",
+    p1->name, p1->type, p1->lim_l, p1->lim_h, p1->min, p1->max);
+ */
+-  return (0);
++  return;
+   }
+ 
+ /*======================================================================*/
+-graphics(w, pEgraphShell, call_data) 
++void graphics(w, pEgraphShell, call_data) 
+   Widget        w;
+   Widget        *pEgraphShell;
+   String        call_data;
+@@ -557,7 +561,7 @@
+   int		n;
+   struct VER	*p1;
+ 
+-  if (p_tek == NULL) return (0);
++  if (p_tek == NULL) return;
+   if (p_argument == NULL)
+     p_argument = p_tek->adr_ver;
+   for (p1 = p_tek->adr_ver, n = 0; p1 != NULL; p1=p1->p_next, n++)
+@@ -585,10 +589,10 @@
+   XawListChange(EgraphList, EvarList, 0, 0, TRUE);
+ 
+   XtPopup(*pEgraphShell, XtGrabExclusive);
+-  return (0);
++  return;
+   }
+ 
+-int define_argument(w, client_data, call_data)
++void define_argument(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+@@ -613,10 +617,10 @@
+     XBell(EpDisplay, 10);
+     XFlush(EpDisplay); 
+     };
+-  return (0);
++  return;
+   }
+ 
+-int define_function(w, client_data, call_data)
++void define_function(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+@@ -634,7 +638,7 @@
+     {
+     XBell(EpDisplay, 10);
+     XFlush(EpDisplay); 
+-    return (0);
++    return;
+     };
+ 
+   for (j=0, p1=p_tek->adr_ver; j != p->list_index; p1=p1->p_next, j++);
+@@ -642,7 +646,7 @@
+     {
+     XBell(EpDisplay, 10);
+     XFlush(EpDisplay); 
+-    return (0);
++    return;
+     };
+ 
+   p_function = p1;
+@@ -692,7 +696,7 @@
+ 
+   XtPopup(ElimShell, XtGrabExclusive);
+ 
+-  return (0);
++  return;
+   }
+ 
+ void limits(xMax, xMin, lMaxP, lMinP)
+@@ -755,7 +759,7 @@
+   return;
+   }
+ 
+-int lim_proc(w, code, call_data)
++void lim_proc(w, code, call_data)
+   Widget        w;
+   String        call_data;
+   int		code;
+@@ -773,27 +777,27 @@
+     p_function->flag = 0;
+     };
+   XtPopdown(ElimShell);
+-  return (0);
++  return;
+   }
+ 
+-int define_type(w, type, call_data)
++void define_type(w, type, call_data)
+   Widget        w;
+   String        call_data;
+   int		type;
+   {
+   graph_type = type;
+-  return (0);
++  return;
+   }
+ 
+-int   exit_graphics(w, client_data, call_data)
++void   exit_graphics(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+   XtPopdown(EgraphShell);
+-  return (0);
++  return;
+   }
+ 
+-int build(widg, client_data, call_data)
++void build(widg, client_data, call_data)
+   Widget        widg;
+   String        client_data, call_data;
+   {
+@@ -805,10 +809,10 @@
+       p1->pixel = PictureGraphPixel(EbuildPict, i++);
+  
+   XtPopup(EbuildShell, XtGrabExclusive);
+-  return(0);
++  return;
+   }
+ 
+-int greed(w, client_data, region)
++void greed(w, client_data, region)
+   Widget        w;
+   String        client_data;
+   Region	region;
+@@ -854,10 +858,10 @@
+   sprintf (text, "%e", p_argument->lim_h);
+   XDrawString(EpDisplay, Ewindow, gc,
+ 	ExCoord(18.0), EyCoord(-0.8), text, strlen(text));
+-  return (0);
++  return;
+   } 
+ 
+-int add(w, client_data, region)
++void add(w, client_data, region)
+   Widget        w;
+   String        client_data;
+   Region	region;
+@@ -974,31 +978,31 @@
+     };
+   free(p_str);
+   fclose(filer);
+-  return (0);
++  return;
+   }
+ 
+-int   show_lim(w, client_data, call_data)
++void   show_lim(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+   String graphList[32];
+-  return (0);
++  return;
+   }
+ 
+-int   exit_build(w, client_data, call_data)
++void   exit_build(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+   XtPopdown(EbuildShell);
+-  return (0);
++  return;
+   }
+ 
+ 
+-postproc() {}
++void postproc() {}
+ 
+-plot() {}
++void plot() {}
+ 
+-end_of_work(w, client_data, call_data)
++void end_of_work(w, client_data, call_data)
+   Widget        w;
+   String        client_data, call_data;
+   {
+diff -ruN pa8-orig/src/wrk/pa8run.h pa8/src/wrk/pa8run.h
+--- pa8-orig/src/wrk/pa8run.h	2000-10-23 19:05:34.000000000 +0400
++++ pa8/src/wrk/pa8run.h	2012-03-25 14:49:05.000000000 +0400
+@@ -12,6 +12,10 @@
+ #include <time.h>
+ #endif
+ 
++#ifdef UNIX
++#include <string.h>
++#endif
++
+ #define PA8_VERSION "PA8 0.0"
+ 
+ #include "pa8wrk.h" /* Header file for models' compilation */
+diff -ruN pa8-orig/src/wrk/pa8wrk.h pa8/src/wrk/pa8wrk.h
+--- pa8-orig/src/wrk/pa8wrk.h	2012-03-06 14:24:56.000000000 +0400
++++ pa8/src/wrk/pa8wrk.h	2012-03-25 14:49:05.000000000 +0400
+@@ -28,6 +28,12 @@
+ #define abs(X) ((X<0) ? -(X) : (X))
+ #endif
+ 
++#ifdef UNIX
++#ifndef DSIGNIF
++#define DSIGNIF 64
++#endif
++#endif
++
+ #ifndef NULL
+ #define NULL	 0
+ #endif
